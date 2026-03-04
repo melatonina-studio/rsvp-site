@@ -1,188 +1,180 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./join.module.css";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-type Left = { days: number; hours: number; minutes: number; seconds: number; done: boolean };
-
-function getLeft(targetMs: number): Left {
-  const now = Date.now();
-  const diff = targetMs - now;
-
-  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, done: true };
-
+function getLeft(targetMs: number) {
+  const diff = targetMs - Date.now();
+  if (diff <= 0) return { done: true, days: 0, hours: 0, minutes: 0, seconds: 0 };
   const s = Math.floor(diff / 1000);
-  const days = Math.floor(s / 86400);
-  const hours = Math.floor((s % 86400) / 3600);
-  const minutes = Math.floor((s % 3600) / 60);
-  const seconds = s % 60;
-
-  return { days, hours, minutes, seconds, done: false };
+  return {
+    done: false,
+    days: Math.floor(s / 86400),
+    hours: Math.floor((s % 86400) / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+  };
 }
 
 export default function JoinPage() {
-  // 🔧 IMPOSTA QUI LA DATA/ORA EVENTO (orario Italia)
-  // Esempio: 23 Marzo 2026 ore 23:30
-  const eventTime = useMemo(() => new Date("2026-03-23T23:30:00+01:00").getTime(), []);
+  const sp = useSearchParams();
+  const ticket = (sp.get("t") || "").trim();
 
-  const [left, setLeft] = useState<Left>(() => getLeft(eventTime));
-  const [phase, setPhase] = useState<"incoming" | "confirmed">("incoming");
+  // 🔧 DATA/ORA EVENTO (Italia)
+  const eventTime = useMemo(() => new Date("2026-03-27T23:30:00+01:00").getTime(), []);
+  const [left, setLeft] = useState(() => getLeft(eventTime));
 
   useEffect(() => {
-    const t = setInterval(() => setLeft(getLeft(eventTime)), 1000);
-    return () => clearInterval(t);
+    const id = setInterval(() => setLeft(getLeft(eventTime)), 1000);
+    return () => clearInterval(id);
   }, [eventTime]);
 
-  useEffect(() => {
-    const a = setTimeout(() => setPhase("confirmed"), 700);
-    return () => clearTimeout(a);
-  }, []);
+  // QR offline: contiene solo il ticket -> perfetto per match su CSV
+  const qrPayload = ticket ? `TICKET:${ticket}` : "TICKET:MISSING";
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(qrPayload)}`;
 
   return (
     <main className={styles.main}>
-      <video className={styles.video} autoPlay muted loop playsInline>
-        <source src="/bg.mp4" type="video/mp4" />
-      </video>
-      <div className={styles.vignette} />
+      <div className={styles.shell}>
 
-      <div className={styles.content}>
-        <div className={styles.logoBlock}>
-          <Image
-            src="/logo.png"
-            alt="Logo"
-            width={220}
-            height={70}
-            priority
-            className={styles.logo}
-          />
-        </div>
+        {/* DESTRA */}
+        <section className={styles.right}>
+          <div className={styles.brand}>
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={240}
+              height={80}
+              className={styles.logo}
+              priority
+            />
+          </div>
 
-  <div className={styles.card}>
-          <div className={styles.header}>
-            <div className={styles.badge}>RSVP OK</div>
-            <div className={styles.glitchWrap}>
-              <div className={styles.glitch} data-text="TRASMISSIONE 0K">
-                TRASMISSIONE RICEVUTA
+          <h1 className={styles.title}>TRASMISSIONE RICEVUTA</h1>
+          <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista.</p>
+          <div className={styles.posterWrap}>
+            <Image
+              src="/line-up.jpg"
+              alt="Locandina evento"
+              fill
+              priority
+              className={styles.poster}
+            />
+          </div>
+
+          
+          {/* COUNTDOWN */}
+          <div className={styles.countdownCard}>
+            <div className={styles.sectionLabel}>COUNTDOWN</div>
+            <div className={styles.countdown}>
+              <div className={styles.timeBox}>
+                <div className={styles.timeNum}>{left.days}</div>
+                <div className={styles.timeLbl}>giorni</div>
+              </div>
+              <div className={styles.timeBox}>
+                <div className={styles.timeNum}>{pad(left.hours)}</div>
+                <div className={styles.timeLbl}>ore</div>
+              </div>
+              <div className={styles.timeBox}>
+                <div className={styles.timeNum}>{pad(left.minutes)}</div>
+                <div className={styles.timeLbl}>min</div>
+              </div>
+              <div className={styles.timeBox}>
+                <div className={styles.timeNum}>{pad(left.seconds)}</div>
+                <div className={styles.timeLbl}>sec</div>
               </div>
             </div>
-            <p className={styles.sub}>
-              {phase === "incoming"
-                ? "Incoming signal… decoding…"
-                : "Sei dentro. Ti abbiamo aggiunto alla lista."}
-            </p>
+          </div>
+        {/* QR INGRESSO */}
+          <div className={styles.qrCard}>
+            <div className={styles.sectionLabel}>QR INGRESSO</div>
+
+            <div className={styles.qrGrid}>
+              <div className={styles.qrBox}>
+                <img className={styles.qrImg} src={qrUrl} alt="QR ingresso" />
+              </div>
+
+              <div className={styles.qrMeta}>
+                <div className={styles.ticketRow}>
+                  <span className={styles.k}>Ticket</span>
+                  <span className={styles.ticket}>{ticket || "—"}</span>
+                </div>
+                <p className={styles.qrHint}>
+                  Fai uno screenshot e mostralo all’ingresso.
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* INFO EVENTO */}
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <span className={styles.k}>Ticket</span>
+              <span className={styles.v}>€10 all’ingresso</span>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.k}>Data</span>
+              <span className={styles.v}>Venerdì 27 marzo</span>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.k}>Orario</span>
+              <span className={styles.v}>Start 23:30</span>
+            </div>
+
+            <div className={styles.lineup}>
+              <div className={styles.k}>Line up</div>
+              <ul className={styles.list}>
+                <li><span className={styles.live}>LIVE</span> Wena</li>
+                <li><span className={styles.live}>LIVE</span> User_D</li>
+                <li><span className={styles.live}>LIVE</span> Alien 23</li>
+                <li><span className={styles.live}>LIVE</span> Steffy Tek</li>
+                <li><span className={styles.live}>DJSET</span>Trisha</li>
+                <li><span className={styles.live}>DJSET</span>Tonachino</li>
+                <li><span className={styles.live}>DJSET</span>Nikita</li>
+                <li><span className={styles.live}>DJSET</span>Mauvais Garçons </li>
+                <li><span className={styles.live}>DJSET</span>Synapses vs Dj Zarra <span className={styles.muted}>()</span></li>
+              </ul>
+            </div>
+          </div>
+          <div className={styles.radarCard}>
+            <div className={styles.radarHeader}>
+              <div className={styles.place}>PLANET</div>
+              <a
+                className={styles.mapBtn}
+                href="https://www.google.com/maps/search/?api=1&query=Planet%20Lamezia%20Terme"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Apri mappa
+              </a>
+            </div>
+
+            <div className={styles.radar}>
+              <div className={styles.radarSweep} />
+              <div className={styles.radarGrid} />
+              <div className={styles.radarDotWrap}>
+                <div className={styles.radarDot} />
+                <div className={styles.radarLabel}>PLANET</div>
+              </div>
+              <div className={styles.radarDot2} />
+            </div>
           </div>
 
-          <div className={styles.grid}>
-            <section className={styles.panel}>
-              <h2 className={styles.h2}>Radar Place</h2>
-
-              <div className={styles.radar}>
-                <div className={styles.radarSweep} />
-                <div className={styles.radarGrid} />
-
-                <div className={styles.radarDotWrap}>
-                  <div className={styles.radarDot} />
-                  <div className={styles.radarLabel}>PLANET</div>
-                </div>
-
-                <div className={styles.radarDot2} />
-              </div>
-
-              <div className={styles.meta}>
-                <div className={styles.metaRow}>
-                  <span className={styles.k}>Status</span>
-                  <span className={styles.v}>{left.done ? "OPEN" : "LOCKED"}</span>
-                </div>
-                <div className={styles.metaRow}>
-                  <span className={styles.k}>TICKET ALLA PORTA</span>
-                  <span className={styles.v}>10€</span>
-                </div>
-                <div className={styles.metaRow}>
-                  <span className={styles.k}> La mancata registrazione al sito comporterà il pagamento del ticket a prezzo pieno l'entrata.</span>
-                </div>
-              </div>
-            </section>
-
-            <section className={styles.panel}>
-              <h2 className={styles.h2}>Countdown</h2>
-              <div className={styles.countdown}>
-                <div className={styles.timeBox}>
-                  <div className={styles.timeNum}>{left.days}</div>
-                  <div className={styles.timeLbl}>giorni</div>
-                </div>
-                <div className={styles.timeBox}>
-                  <div className={styles.timeNum}>{pad(left.hours)}</div>
-                  <div className={styles.timeLbl}>ore</div>
-                </div>
-                <div className={styles.timeBox}>
-                  <div className={styles.timeNum}>{pad(left.minutes)}</div>
-                  <div className={styles.timeLbl}>min</div>
-                </div>
-                <div className={styles.timeBox}>
-                  <div className={styles.timeNum}>{pad(left.seconds)}</div>
-                  <div className={styles.timeLbl}>sec</div>
-                </div>
-              </div>
-              <div className={styles.info}>
-                <div className={styles.infoRow}>
-                  <span className={styles.k}>Data</span>
-                  <span className={styles.v}>Venerdì 27 marzo</span>
-                </div>
-
-                <div className={styles.infoBlock}>
-                  <div className={styles.k}>Line up</div>
-                  <ul className={styles.list}>
-                    <li><span className={styles.live}>LIVE</span> Wena</li>
-                    <li><span className={styles.live}>LIVE</span> User_D</li>
-                    <li><span className={styles.live}>LIVE</span> Alien 23</li>
-                    <li><span className={styles.live}>LIVE</span> Steffy Tek</li>
-                    <li><span className={styles.live}>DJSET</span>Trisha</li>
-                    <li><span className={styles.live}>DJSET</span>Tonachino</li>
-                    <li><span className={styles.live}>DJSET</span>Nikita</li>
-                    <li><span className={styles.live}>DJSET</span>Mauvais Garçons</li>
-                     <li><span className={styles.live}>DJSET</span>Synapsess vs Dj Zarra</li>
-                  </ul>
-                </div>
-
-                <div className={styles.infoRow}>
-                  <span className={styles.k}>Location</span>
-                  <span className={styles.v}>
-                    Planet — Lamezia Terme{" "}
-                    <a
-                      className={styles.mapLink}
-                      href="https://maps.app.goo.gl/YvaPj4BKUz2kLkfV7"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Apri su Maps
-                    </a>
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            
-          </div>
-
+          {/* PLAYLIST + BACK */}
           <div className={styles.actions}>
-            {/* Cambia questi link quando vuoi */}
             <a className={styles.btn} href="https://soundcloud.com" target="_blank" rel="noreferrer">
-              Unlock soundtrack
+              Playlist
             </a>
-            <a className={styles.btnGhost} href="/" title="Torna al form">
-              Torna indietro
+            <a className={styles.btnGhost} href="/" title="Torna alla home">
+              Indietro
             </a>
           </div>
-
-          <p className={styles.footer}>
-            Non condividere questa pagina. Se ti serve assistenza: simbiosievents@gmail.com
-          </p>
-        </div>
+        </section>
       </div>
     </main>
   );

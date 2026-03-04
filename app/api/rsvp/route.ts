@@ -1,12 +1,30 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 
+export const runtime = "nodejs";
+
+function isEmail(s: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
+    // honeypot anti-bot
     if (body?.website) {
-  return NextResponse.json({ ok: true });
-}
+      return NextResponse.json({ ok: true });
+    }
+
+    const name = String(body?.name ?? "").trim();
+    const email = String(body?.email ?? "").trim();
+    const status = String(body?.status ?? "si").trim();
+
+    if (name.length < 2) return NextResponse.json({ error: "Nome non valido" }, { status: 400 });
+    if (!isEmail(email)) return NextResponse.json({ error: "Email non valida" }, { status: 400 });
+    if (!["si", "forse", "no"].includes(status))
+      return NextResponse.json({ error: "Stato non valido" }, { status: 400 });
+
     const sheetId = process.env.GOOGLE_SHEET_ID;
     const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
@@ -17,8 +35,14 @@ export async function POST(req: Request) {
     try {
       credentials = JSON.parse(rawKey);
     } catch {
-      return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_KEY non è JSON valido" }, { status: 500 });
+      return NextResponse.json(
+        { error: "GOOGLE_SERVICE_ACCOUNT_KEY non è JSON valido" },
+        { status: 500 }
+      );
     }
+
+    // ✅ ticket per QR ingresso
+    const ticket = crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
 
     const auth = new google.auth.GoogleAuth({
       credentials,
@@ -27,7 +51,8 @@ export async function POST(req: Request) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    const values = [[new Date().toISOString(), body?.name ?? "", body?.email ?? "", body?.people ?? 1, body?.status ?? "si"]];
+    // ✅ timestamp | ticket | name | email | status
+    const values = [[new Date().toISOString(), ticket, name, email, status]];
 
     const resp = await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
@@ -36,7 +61,8 @@ export async function POST(req: Request) {
       requestBody: { values },
     });
 
-    return NextResponse.json({ ok: true, updatedRange: resp.data.updates?.updatedRange });
+    // ✅ ritorno ticket al client
+    return NextResponse.json({ ok: true, ticket, updatedRange: resp.data.updates?.updatedRange });
   } catch (err: any) {
     console.error("RSVP ERROR:", err?.message || err);
     return NextResponse.json({ error: err?.message || "Errore interno" }, { status: 500 });

@@ -36,7 +36,6 @@ export default function Home() {
     const payload = {
       name: String(fd.get("name") || "").trim(),
       email: String(fd.get("email") || "").trim(),
-      status: String(fd.get("status") || "si").trim(),
       website: String(fd.get("website") || "").trim(), // honeypot anti-bot
     };
 
@@ -72,7 +71,7 @@ export default function Home() {
         return;
       }
 
-      router.push("/join");
+      router.push(`/join?t=${encodeURIComponent(data.ticket)}`);
     } catch {
       setError("Errore di rete. Riprova.");
       setLoading(false);
@@ -102,7 +101,7 @@ export default function Home() {
         <div className={styles.card}>
           <h1 className={styles.h1}>RSVP 27 Marzo</h1>
           <p className={styles.sub}>
-            Conferma la tua partecipazione. Inserisci nome e cognome, email e partecipa. Niente spam, solo Tekno.
+            Registrandoti avrai la riduzione sul Ticket. Inserisci nome e cognome, email e partecipa. Niente spam, solo Tekno.
           </p>
 
           <form className={styles.form} onSubmit={onSubmit} noValidate>
@@ -145,15 +144,6 @@ export default function Home() {
                 }}
               />
               {emailError && <div className={styles.fieldError}>{emailError}</div>}
-            </label>
-
-            <label className={styles.label}>
-              <span className={styles.labelText}>Parteciperai?</span>
-              <select className={styles.select} name="status" defaultValue="si">
-                <option value="si">Sì</option>
-                <option value="forse">Forse</option>
-                <option value="no">No</option>
-              </select>
             </label>
 
             {error && <div className={styles.error}>{error}</div>}
