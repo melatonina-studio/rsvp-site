@@ -37,7 +37,7 @@ function JoinContent() {
   }, [eventTime]);
 
   // QR offline: contiene solo il ticket -> perfetto per match su CSV
-  const qrPayload = ticket ? `TICKET:${ticket}` : "TICKET:MISSING";
+ const qrPayload = ticket || "MISSING";
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(qrPayload)}`;
 
   return (
