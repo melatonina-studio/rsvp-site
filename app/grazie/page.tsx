@@ -12,7 +12,7 @@ export default function GraziePage() {
           <ul style={{ marginTop: 10 }}>
             <li>Line-up + orari</li>
             <li>Location + map</li>
-            <li>Regole d’ingresso / dress code / ecc.</li>
+            <li>Regole d’ingresso</li>
             <li>Link ticket (se serve)</li>
             <li>Nel frattempo ci succhiano tutti l'uccello</li>
           </ul>
