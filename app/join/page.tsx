@@ -137,7 +137,7 @@ export default function JoinPage() {
                 <li><span className={styles.live}>DJSET</span>Tonachino</li>
                 <li><span className={styles.live}>DJSET</span>Nikita</li>
                 <li><span className={styles.live}>DJSET</span>Mauvais Garçons </li>
-                <li><span className={styles.live}>DJSET</span>Synapses vs Dj Zarra <span className={styles.muted}>()</span></li>
+                <li><span className={styles.live}>DJSET</span>Synapses vs Dj Zarra <span className={styles.muted}></span></li>
               </ul>
             </div>
           </div>
@@ -169,9 +169,6 @@ export default function JoinPage() {
           <div className={styles.actions}>
             <a className={styles.btn} href="https://soundcloud.com" target="_blank" rel="noreferrer">
               Playlist
-            </a>
-            <a className={styles.btnGhost} href="/" title="Torna alla home">
-              Indietro
             </a>
           </div>
         </section>
