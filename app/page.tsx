@@ -1,65 +1,203 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export default function Home() {
+export default function RsvpPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const payload = {
+      name: String(formData.get("name") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      people: Number(formData.get("people") || 1),
+      status: String(formData.get("status") || "si"),
+    };
+
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Errore invio RSVP");
+      }
+
+      router.push("/grazie");
+    } catch (err: any) {
+      setError(err?.message || "Errore imprevisto");
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <main style={{ minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      {/* Video background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          filter: "brightness(0.55)",
+          transform: "scale(1.02)",
+          objectPosition: "center 40%",
+        }}
+      >
+        <source src="/bg.mp4" type="video/mp4" />
+      </video>
+        {/* LOGO */}
+      <div
+        style={{
+          position: "absolute",
+          top: "30px",
+          left: "50%",
+          padding: "20px",
+          transform: "translateX(-50%)",
+          zIndex: 20
+        }}
+      >
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/logo.png"
+          alt="Logo"
+          width={180}
+          height={60}
           priority
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+        </div>
+      {/* Overlay contenuto */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          minHeight: "100vh",
+          display: "grid",
+          placeItems: "center",
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 520,
+            borderRadius: 16,
+            padding: 20,
+            background: "rgba(10,10,14,0.42)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            backdropFilter: "blur(10px)",
+            color: "#fff",
+          }}
+        >
+          <h1 style={{ margin: 0, fontSize: 28, letterSpacing: -0.5 }}>
+            Registarti per avere la riduzione all'entrata
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p style={{ marginTop: 8, opacity: 0.85 }}>
+            Conferma la tua partecipazione. Niente spam, solo tekno!!!
           </p>
+
+          <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 14 }}>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span style={{ fontSize: 13, opacity: 0.85 }}>Nome</span>
+              <input type="text" name="website" style={{ display: "none" }} />
+              <input
+                name="name"
+                required
+                placeholder="Nome e cognome"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6 }}>
+              <span style={{ fontSize: 13, opacity: 0.85 }}>Email</span>
+              <input
+                name="email"
+                required
+                type="email"
+                placeholder="nome@email.com"
+                style={inputStyle}
+              />
+            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 13, opacity: 0.85 }}>Persone</span>
+                <input
+                  name="people"
+                  type="number"
+                  min={1}
+                  max={10}
+                  defaultValue={1}
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: 6 }}>
+                <span style={{ fontSize: 13, opacity: 0.85 }}>Parteciperai?</span>
+                <select name="status" defaultValue="si" style={inputStyle}>
+                  <option value="si">Sì</option>
+                  <option value="forse">Forse</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+            </div>
+
+            {error && (
+              <div style={{ padding: 10, borderRadius: 12, background: "rgba(255,0,0,0.12)", border: "1px solid rgba(255,0,0,0.25)" }}>
+                <span style={{ fontSize: 13 }}>{error}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                padding: "12px 14px",
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: loading ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.16)",
+                color: "#fff",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontWeight: 600,
+              }}
+            >
+              {loading ? "Invio..." : "Conferma"}
+            </button>
+
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>
+              Inviando accetti che useremo i dati solo per la gestione dell’evento.
+            </p>
+          </form>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "12px 12px",
+  borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(0,0,0,0.25)",
+  color: "#fff",
+  outline: "none",
+};
+
