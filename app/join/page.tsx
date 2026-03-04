@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import styles from "./join.module.css";
 
 function pad(n: number) {
@@ -22,7 +23,7 @@ function getLeft(targetMs: number) {
   };
 }
 
-export default function JoinPage() {
+function JoinContent() {
   const sp = useSearchParams();
   const ticket = (sp.get("t") || "").trim();
 
@@ -174,5 +175,12 @@ export default function JoinPage() {
         </section>
       </div>
     </main>
+  );
+}
+export default function JoinPage() {
+  return (
+    <Suspense>
+      <JoinContent />
+    </Suspense>
   );
 }
