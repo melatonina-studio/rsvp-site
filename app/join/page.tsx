@@ -57,7 +57,9 @@ function JoinContent() {
             />
           </div>
 
-          <h1 className={styles.title}>TRASMISSIONE RICEVUTA</h1>
+          <h1 className={styles.glitch} data-text="TRASMISSIONE RICEVUTA">
+            TRASMISSIONE RICEVUTA
+          </h1>
           <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista.</p>
           <div className={styles.posterWrap}>
             <Image
