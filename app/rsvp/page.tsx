@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function RsvpPage() {
   const router = useRouter();
@@ -58,11 +59,30 @@ export default function RsvpPage() {
           objectFit: "cover",
           filter: "brightness(0.55)",
           transform: "scale(1.02)",
+          objectPosition: "center 40%",
         }}
       >
         <source src="/bg.mp4" type="video/mp4" />
       </video>
-
+        {/* LOGO */}
+      <div
+        style={{
+          position: "absolute",
+          top: "30px",
+          left: "50%",
+          padding: "20px",
+          transform: "translateX(-50%)",
+          zIndex: 20
+        }}
+      >
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={180}
+          height={60}
+          priority
+        />
+        </div>
       {/* Overlay contenuto */}
       <div
         style={{
@@ -80,17 +100,17 @@ export default function RsvpPage() {
             maxWidth: 520,
             borderRadius: 16,
             padding: 20,
-            background: "rgba(10,10,14,0.72)",
+            background: "rgba(10,10,14,0.42)",
             border: "1px solid rgba(255,255,255,0.12)",
             backdropFilter: "blur(10px)",
             color: "#fff",
           }}
         >
           <h1 style={{ margin: 0, fontSize: 28, letterSpacing: -0.5 }}>
-            RSVP
+            Registarti per avere la riduzione all'entrata
           </h1>
           <p style={{ marginTop: 8, opacity: 0.85 }}>
-            Conferma la tua partecipazione. Niente spam, solo logistica.
+            Conferma la tua partecipazione. Niente spam, solo tekno!!!
           </p>
 
           <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 14 }}>
