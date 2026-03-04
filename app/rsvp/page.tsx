@@ -96,6 +96,7 @@ export default function RsvpPage() {
           <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 14 }}>
             <label style={{ display: "grid", gap: 6 }}>
               <span style={{ fontSize: 13, opacity: 0.85 }}>Nome</span>
+              <input type="text" name="website" style={{ display: "none" }} />
               <input
                 name="name"
                 required
@@ -179,3 +180,4 @@ const inputStyle: React.CSSProperties = {
   color: "#fff",
   outline: "none",
 };
+
