@@ -60,7 +60,7 @@ export default function JoinPage() {
           <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista.</p>
           <div className={styles.posterWrap}>
             <Image
-              src="/line-up.jpg"
+              src="/cover-planet.jpg"
               alt="Locandina evento"
               fill
               priority
