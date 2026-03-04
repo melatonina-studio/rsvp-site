@@ -100,9 +100,9 @@ export default function Home() {
 
       <div className={styles.content}>
         <div className={styles.card}>
-          <h1 className={styles.h1}>RSVP</h1>
+          <h1 className={styles.h1}>RSVP 27 Marzo</h1>
           <p className={styles.sub}>
-            Conferma la tua partecipazione. Niente spam, solo logistica.
+            Conferma la tua partecipazione. Inserisci nome e cognome, email e partecipa. Niente spam, solo Tekno.
           </p>
 
           <form className={styles.form} onSubmit={onSubmit} noValidate>
