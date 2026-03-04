@@ -58,7 +58,7 @@ function JoinContent() {
           </div>
 
           <h1 className={styles.title}>TRASMISSIONE RICEVUTA</h1>
-          <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista.</p>
+          <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista e pagherai il prezzo ridotto. niente spam solo Tekno.</p>
           <div className={styles.posterWrap}>
             <Image
               src="/cover-planet.jpg"
