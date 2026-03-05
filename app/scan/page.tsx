@@ -1,4 +1,4 @@
-import Scanner from "../../components/Scanner";
+import ScanClient from "../../components/ScanClient";
 
 export default function ScanPage({
   searchParams,
@@ -19,11 +19,10 @@ export default function ScanPage({
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
+    <main style={{ padding: 24, maxWidth: 760, margin: "0 auto" }}>
       <h1>Scanner</h1>
-      <p style={{ opacity: 0.8 }}>Punta la camera sul QR.</p>
-
-      <Scanner onResult={(text) => console.log("QR letto:", text)} />
+      <p style={{ opacity: 0.8 }}>Scansiona il QR (codice puro).</p>
+      <ScanClient />
     </main>
   );
 }
