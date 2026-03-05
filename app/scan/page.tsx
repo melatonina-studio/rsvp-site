@@ -6,7 +6,7 @@ export default function ScanPage() {
 
       <div style={{ marginTop: 16, padding: 12, border: "1px solid #333", borderRadius: 12 }}>
         <p><b>Stato:</b> placeholder</p>
-        <p>Prossimo step: camera + lettura QR.</p>
+        <p>Prossimo step: camera + vfsvfsvvslettura QR.</p>
       </div>
     </main>
   );
