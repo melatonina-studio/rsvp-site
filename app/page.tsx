@@ -71,7 +71,7 @@ export default function Home() {
         return;
       }
 
-      router.push(`/join?t=${encodeURIComponent(data.ticket)}`);
+      router.push(`/join?t=${encodeURIComponent(data.code)}`);
     } catch {
       setError("Errore di rete. Riprova.");
       setLoading(false);

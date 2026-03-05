@@ -18,12 +18,9 @@ export async function POST(req: Request) {
 
     const name = String(body?.name ?? "").trim();
     const email = String(body?.email ?? "").trim();
-    const status = String(body?.status ?? "si").trim();
 
     if (name.length < 2) return NextResponse.json({ error: "Nome non valido" }, { status: 400 });
     if (!isEmail(email)) return NextResponse.json({ error: "Email non valida" }, { status: 400 });
-    if (!["si", "forse", "no"].includes(status))
-      return NextResponse.json({ error: "Stato non valido" }, { status: 400 });
 
     const sheetId = process.env.GOOGLE_SHEET_ID;
     const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -35,14 +32,20 @@ export async function POST(req: Request) {
     try {
       credentials = JSON.parse(rawKey);
     } catch {
-      return NextResponse.json(
-        { error: "GOOGLE_SERVICE_ACCOUNT_KEY non è JSON valido" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_KEY non è JSON valido" }, { status: 500 });
     }
 
-    // ✅ ticket per QR ingresso
-    const ticket = crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
+    // ✅ unique code per QR ingresso (10 char esadecimali, uppercase)
+    const code = crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
+    const baseUrl = process.env.PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      return NextResponse.json({ error: "Manca PUBLIC_BASE_URL" }, { status: 500 });
+    }
+
+    const link = `${baseUrl.replace(/\/$/, "")}/join?t=${encodeURIComponent(code)}`;
+    
+    // ✅ additional info: ci mettiamo l'email (come vuoi tu)
+    const additionalInfo = email;
 
     const auth = new google.auth.GoogleAuth({
       credentials,
@@ -51,18 +54,18 @@ export async function POST(req: Request) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // ✅ timestamp | ticket | name | email | status
-    const values = [[new Date().toISOString(), ticket, name, email, status]];
+    // ✅ timestamp | name | email | unique code | additional info
+    const values = [[new Date().toISOString(), name, email, code, additionalInfo, link]];
 
     const resp = await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
-      range: "A:E",
+      range: "A:F",
       valueInputOption: "USER_ENTERED",
       requestBody: { values },
     });
 
-    // ✅ ritorno ticket al client
-    return NextResponse.json({ ok: true, ticket, updatedRange: resp.data.updates?.updatedRange });
+    // ✅ ritorna code al client (per il QR in /join)
+    return NextResponse.json({ ok: true, code, updatedRange: resp.data.updates?.updatedRange });
   } catch (err: any) {
     console.error("RSVP ERROR:", err?.message || err);
     return NextResponse.json({ error: err?.message || "Errore interno" }, { status: 500 });
