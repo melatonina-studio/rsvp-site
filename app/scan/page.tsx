@@ -1,13 +1,29 @@
-export default function ScanPage() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Scanner</h1>
-      <p>Questa è la pagina /scan (branch dev).</p>
+import Scanner from "../../components/Scanner";
 
-      <div style={{ marginTop: 16, padding: 12, border: "1px solid #333", borderRadius: 12 }}>
-        <p><b>Stato:</b> placeholder</p>
-        <p>Prossimo step: camera + vfsvfsvvslettura QR.</p>
-      </div>
+export default function ScanPage({
+  searchParams,
+}: {
+  searchParams: { key?: string };
+}) {
+  const key = (searchParams.key || "").trim();
+  const expected = process.env.SCAN_KEY || "";
+  const ok = expected && key && key === expected;
+
+  if (!ok) {
+    return (
+      <main style={{ padding: 24 }}>
+        <h1>Scanner</h1>
+        <p>Accesso negato</p>
+      </main>
+    );
+  }
+
+  return (
+    <main style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
+      <h1>Scanner</h1>
+      <p style={{ opacity: 0.8 }}>Punta la camera sul QR.</p>
+
+      <Scanner onResult={(text) => console.log("QR letto:", text)} />
     </main>
   );
 }
