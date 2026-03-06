@@ -13,13 +13,19 @@ type Result =
 export default function ScanClient() {
   const [res, setRes] = useState<Result>({ status: "idle" });
   const busyRef = useRef(false);
-  const lastCodeRef = useRef<string>("");
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function resetToIdle() {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => {
+      setRes({ status: "idle" });
+      busyRef.current = false;
+    }, 2200);
+  }
 
   async function checkin(code: string) {
-    if (busyRef.current && lastCodeRef.current === code) return;
-
+    if (busyRef.current) return;
     busyRef.current = true;
-    lastCodeRef.current = code;
 
     try {
       const r = await fetch("/api/checkin", {
@@ -50,57 +56,56 @@ export default function ScanClient() {
         navigator.vibrate?.(180);
       } else {
         setRes({ status: "error", message: data.error || "Errore" });
+        navigator.vibrate?.(180);
       }
+
+      resetToIdle();
     } catch (e: any) {
       setRes({ status: "error", message: e?.message || "Errore rete" });
-    } finally {
-      setTimeout(() => {
-        busyRef.current = false;
-      }, 500);
+      navigator.vibrate?.(180);
+      resetToIdle();
     }
   }
 
   const feedback =
-  res.status === "ok"
-    ? {
-        type: "ok" as const,
-        title: "✅ VALIDO",
-        subtitle: res.name || res.email || "Ingresso confermato",
-      }
-    : res.status === "already"
-    ? {
-        type: "already" as const,
-        title: "🟡 GIÀ ENTRATO",
-        subtitle: res.name || res.email || "Questo QR risulta già usato",
-      }
-    : res.status === "not_found"
-    ? {
-        type: "not_found" as const,
-        title: "🔴 NON TROVATO",
-        subtitle: res.code,
-      }
-    : res.status === "error"
-    ? {
-        type: "error" as const,
-        title: "⚠️ ERRORE",
-        subtitle: res.message,
-      }
-    : {
-        type: "idle" as const,
-        title: "",
-        subtitle: "",
-      };
+    res.status === "ok"
+      ? {
+          type: "ok" as const,
+          title: "VALIDO",
+          subtitle: res.name || res.email || "Ingresso confermato",
+        }
+      : res.status === "already"
+      ? {
+          type: "already" as const,
+          title: "GIÀ ENTRATO",
+          subtitle: res.name || res.email || "QR già usato",
+        }
+      : res.status === "not_found"
+      ? {
+          type: "not_found" as const,
+          title: "NON TROVATO",
+          subtitle: res.code,
+        }
+      : res.status === "error"
+      ? {
+          type: "error" as const,
+          title: "ERRORE",
+          subtitle: res.message,
+        }
+      : {
+          type: "idle" as const,
+          title: "",
+          subtitle: "",
+        };
 
   return (
-    <div>
-      <Scanner
-        feedback={feedback}
-        onResult={(text) => {
-          const code = (text || "").trim();
-          if (!code) return;
-          checkin(code);
-        }}
-      />
-    </div>
+    <Scanner
+      feedback={feedback}
+      onResult={(text) => {
+        const code = (text || "").trim();
+        if (!code) return;
+        checkin(code);
+      }}
+    />
   );
 }

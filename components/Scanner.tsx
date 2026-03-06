@@ -93,9 +93,7 @@ export default function Scanner({ onResult, feedback }: Props) {
             setLastText(text);
             setLastAt(now);
 
-            // BLOCCA subito lo scanner dopo una lettura valida
             stop();
-
             onResult?.(text);
             return;
           }
@@ -117,13 +115,32 @@ export default function Scanner({ onResult, feedback }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const feedbackColors = {
-    idle: "rgba(20,20,20,.72)",
-    ok: "rgba(0,160,80,.92)",
-    already: "rgba(208,158,0,.94)",
-    not_found: "rgba(210,35,35,.94)",
-    error: "rgba(180,40,40,.94)",
-  };
+  const frameBorder =
+    feedback?.type === "ok"
+      ? "4px solid #00d15f"
+      : feedback?.type === "already"
+      ? "4px solid #ffd400"
+      : feedback?.type === "not_found" || feedback?.type === "error"
+      ? "4px solid #ff3b30"
+      : "3px solid rgba(255,255,255,.92)";
+
+  const frameBg =
+    feedback?.type === "ok"
+      ? "rgba(0,209,95,.12)"
+      : feedback?.type === "already"
+      ? "rgba(255,212,0,.12)"
+      : feedback?.type === "not_found" || feedback?.type === "error"
+      ? "rgba(255,59,48,.12)"
+      : "transparent";
+
+  const bannerBg =
+    feedback?.type === "ok"
+      ? "rgba(0,170,80,.95)"
+      : feedback?.type === "already"
+      ? "rgba(214,168,0,.95)"
+      : feedback?.type === "not_found" || feedback?.type === "error"
+      ? "rgba(210,35,35,.95)"
+      : "transparent";
 
   return (
     <div
@@ -154,42 +171,6 @@ export default function Scanner({ onResult, feedback }: Props) {
           muted
           playsInline
         />
-
-        {!running && feedback?.type === "idle" && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(0,0,0,.45)",
-              padding: 20,
-            }}
-          >
-            <button
-              onClick={start}
-              type="button"
-              disabled={!deviceId}
-              style={{
-                width: "100%",
-                maxWidth: 280,
-                padding: "16px 20px",
-                borderRadius: 18,
-                border: "none",
-                background: "#ffffff",
-                color: "#000",
-                fontWeight: 800,
-                fontSize: 18,
-                cursor: !deviceId ? "not-allowed" : "pointer",
-                opacity: !deviceId ? 0.6 : 1,
-                boxShadow: "0 10px 30px rgba(0,0,0,.35)",
-              }}
-            >
-              Avvia scanner
-            </button>
-          </div>
-        )}
 
         <div
           style={{
@@ -234,56 +215,7 @@ export default function Scanner({ onResult, feedback }: Props) {
               Stop
             </button>
           ) : (
-            <div style={{ width: 96 }} />
-          )}
-          {!running && (
-            <div
-              style={{
-                position: "absolute",
-                left: 20,
-                right: 20,
-                top: "56%",
-                transform: "translateY(-50%)",
-                height: "34%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 4,
-                pointerEvents: "none",
-              }}
-            >
-              <button
-                onClick={start}
-                type="button"
-                disabled={!deviceId}
-                style={{
-                  pointerEvents: "auto",
-                  padding: "15px 20px",
-                  borderRadius: 16,
-                  border: "none",
-                  background:
-                    feedback?.type === "ok"
-                      ? "#00c853"
-                      : feedback?.type === "already"
-                      ? "#ffd600"
-                      : feedback?.type === "not_found" || feedback?.type === "error"
-                      ? "#ff3b30"
-                      : "#ffffff",
-                  color:
-                    feedback?.type === "already"
-                      ? "#111"
-                      : "#000",
-                  fontWeight: 800,
-                  fontSize: 17,
-                  cursor: !deviceId ? "not-allowed" : "pointer",
-                  opacity: !deviceId ? 0.6 : 1,
-                  boxShadow: "0 10px 30px rgba(0,0,0,.28)",
-                  minWidth: 220,
-                }}
-              >
-                {feedback?.type === "idle" ? "Avvia scanner" : "Nuova scansione"}
-              </button>
-            </div>
+            <div style={{ width: 72 }} />
           )}
         </div>
 
@@ -291,18 +223,18 @@ export default function Scanner({ onResult, feedback }: Props) {
           <div
             style={{
               position: "absolute",
-              top: 72,
-              left: 16,
-              right: 16,
+              top: 82,
+              left: 18,
+              right: 18,
               borderRadius: 18,
               padding: "16px 18px",
-              background: feedbackColors[feedback.type],
+              background: bannerBg,
               color: "#fff",
               boxShadow: "0 10px 30px rgba(0,0,0,.35)",
               zIndex: 3,
             }}
           >
-            <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1.1 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.1 }}>
               {feedback.title}
             </div>
             {feedback.subtitle ? (
@@ -320,29 +252,56 @@ export default function Scanner({ onResult, feedback }: Props) {
             right: 20,
             top: "56%",
             transform: "translateY(-50%)",
-            border:
-              feedback?.type === "ok"
-                ? "4px solid #00c853"
-                : feedback?.type === "already"
-                ? "4px solid #ffd600"
-                : feedback?.type === "not_found" || feedback?.type === "error"
-                ? "4px solid #ff3b30"
-                : "3px solid rgba(255,255,255,.92)",
+            border: frameBorder,
             borderRadius: 22,
             height: "34%",
-            background:
-              feedback?.type === "ok"
-                ? "rgba(0,200,83,.12)"
-                : feedback?.type === "already"
-                ? "rgba(255,214,0,.14)"
-                : feedback?.type === "not_found" || feedback?.type === "error"
-                ? "rgba(255,59,48,.12)"
-                : "transparent",
+            background: frameBg,
             boxShadow: "0 0 0 9999px rgba(0,0,0,.22)",
-            pointerEvents: "none",
             transition: "all .18s ease",
+            pointerEvents: "none",
           }}
         />
+
+        {!running && (
+          <div
+            style={{
+              position: "absolute",
+              left: 20,
+              right: 20,
+              top: "56%",
+              transform: "translateY(-50%)",
+              height: "34%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 4,
+              pointerEvents: "none",
+            }}
+          >
+            <button
+              onClick={start}
+              type="button"
+              disabled={!deviceId}
+              style={{
+                pointerEvents: "auto",
+                padding: "15px 22px",
+                borderRadius: 18,
+                border: "1px solid rgba(255,255,255,.18)",
+                background: "rgba(255,255,255,.75)",
+                backdropFilter: "blur(8px)",
+                color: "#111",
+                fontWeight: 800,
+                fontSize: 18,
+                cursor: !deviceId ? "not-allowed" : "pointer",
+                opacity: !deviceId ? 0.5 : 1,
+                boxShadow: "0 10px 30px rgba(0,0,0,.28)",
+                minWidth: 220,
+              }}
+            >
+              Avvia scansione
+            </button>
+          </div>
+        )}
 
         <div
           style={{
