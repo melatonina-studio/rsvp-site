@@ -4,8 +4,6 @@ import { Resend } from "resend";
 
 export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function isEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
@@ -39,18 +37,24 @@ export async function POST(req: Request) {
     if (!sheetId) {
       return NextResponse.json({ error: "Manca GOOGLE_SHEET_ID" }, { status: 500 });
     }
+
     if (!rawKey) {
       return NextResponse.json({ error: "Manca GOOGLE_SERVICE_ACCOUNT_KEY" }, { status: 500 });
     }
+
     if (!baseUrl) {
       return NextResponse.json({ error: "Manca PUBLIC_BASE_URL" }, { status: 500 });
     }
+
     if (!from) {
       return NextResponse.json({ error: "Manca EMAIL_FROM" }, { status: 500 });
     }
+
     if (!resendKey) {
       return NextResponse.json({ error: "Manca RESEND_API_KEY" }, { status: 500 });
     }
+
+    const resend = new Resend(resendKey);
 
     let credentials: any;
     try {
@@ -62,13 +66,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // code stabile per QR / scanner
     const code = crypto.randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
-
-    // additional info per ScanTicket Pro
     const additionalInfo = email;
-
-    // link scheda ticket
     const ticketLink = `${baseUrl.replace(/\/$/, "")}/join?t=${encodeURIComponent(code)}`;
 
     const auth = new google.auth.GoogleAuth({
@@ -88,8 +87,7 @@ export async function POST(req: Request) {
       requestBody: { values },
     });
 
-    // email di conferma
-    await resend.emails.send({
+    const emailResult = await resend.emails.send({
       from,
       to: email,
       subject: "Registrazione confermata — Apri il tuo ticket",
@@ -127,6 +125,8 @@ export async function POST(req: Request) {
         </div>
       `,
     });
+
+    console.log("RESEND RESULT:", emailResult);
 
     return NextResponse.json({
       ok: true,
