@@ -234,21 +234,56 @@ export default function Scanner({ onResult, feedback }: Props) {
               Stop
             </button>
           ) : (
-            <button
-              onClick={start}
-              type="button"
+            <div style={{ width: 96 }} />
+          )}
+          {!running && (
+            <div
               style={{
-                padding: "10px 14px",
-                borderRadius: 999,
-                border: "none",
-                background: "rgba(0,120,255,.92)",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: "pointer",
+                position: "absolute",
+                left: 20,
+                right: 20,
+                top: "56%",
+                transform: "translateY(-50%)",
+                height: "34%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 4,
+                pointerEvents: "none",
               }}
             >
-              Nuova scansione
-            </button>
+              <button
+                onClick={start}
+                type="button"
+                disabled={!deviceId}
+                style={{
+                  pointerEvents: "auto",
+                  padding: "15px 20px",
+                  borderRadius: 16,
+                  border: "none",
+                  background:
+                    feedback?.type === "ok"
+                      ? "#00c853"
+                      : feedback?.type === "already"
+                      ? "#ffd600"
+                      : feedback?.type === "not_found" || feedback?.type === "error"
+                      ? "#ff3b30"
+                      : "#ffffff",
+                  color:
+                    feedback?.type === "already"
+                      ? "#111"
+                      : "#000",
+                  fontWeight: 800,
+                  fontSize: 17,
+                  cursor: !deviceId ? "not-allowed" : "pointer",
+                  opacity: !deviceId ? 0.6 : 1,
+                  boxShadow: "0 10px 30px rgba(0,0,0,.28)",
+                  minWidth: 220,
+                }}
+              >
+                {feedback?.type === "idle" ? "Avvia scanner" : "Nuova scansione"}
+              </button>
+            </div>
           )}
         </div>
 
@@ -285,11 +320,27 @@ export default function Scanner({ onResult, feedback }: Props) {
             right: 20,
             top: "56%",
             transform: "translateY(-50%)",
-            border: "3px solid rgba(255,255,255,.9)",
+            border:
+              feedback?.type === "ok"
+                ? "4px solid #00c853"
+                : feedback?.type === "already"
+                ? "4px solid #ffd600"
+                : feedback?.type === "not_found" || feedback?.type === "error"
+                ? "4px solid #ff3b30"
+                : "3px solid rgba(255,255,255,.92)",
             borderRadius: 22,
             height: "34%",
+            background:
+              feedback?.type === "ok"
+                ? "rgba(0,200,83,.12)"
+                : feedback?.type === "already"
+                ? "rgba(255,214,0,.14)"
+                : feedback?.type === "not_found" || feedback?.type === "error"
+                ? "rgba(255,59,48,.12)"
+                : "transparent",
             boxShadow: "0 0 0 9999px rgba(0,0,0,.22)",
             pointerEvents: "none",
+            transition: "all .18s ease",
           }}
         />
 
