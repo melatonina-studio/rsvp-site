@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
-        range: `Sheet1!${String.fromCharCode(65 + checkedIndex)}${i + 1}`,
+        range: `${TAB}!${String.fromCharCode(65 + checkedIndex)}${i + 1}`,
         valueInputOption: "RAW",
         requestBody: {
           values: [[now]],
