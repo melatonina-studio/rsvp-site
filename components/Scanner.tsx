@@ -6,11 +6,16 @@ import { BarcodeFormat, DecodeHintType, NotFoundException } from "@zxing/library
 
 type Props = {
   onResult?: (text: string) => void;
+  feedback?: {
+    type: "idle" | "ok" | "already" | "not_found" | "error";
+    title?: string;
+    subtitle?: string;
+  };
 };
 
 type ZXingControls = { stop: () => void } | null;
 
-export default function Scanner({ onResult }: Props) {
+export default function Scanner({ onResult, feedback }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<ZXingControls>(null);
 
@@ -39,17 +44,23 @@ export default function Scanner({ onResult }: Props) {
       setDevices(list);
 
       const preferred =
-        list.find((d) => /back|rear|environment/i.test(d.label))?.deviceId ||
+        list.find((d) => /back|rear|environment|posteriore/i.test(d.label))?.deviceId ||
+        list[list.length - 1]?.deviceId ||
         list[0]?.deviceId ||
         "";
 
       setDeviceId((prev) => prev || preferred);
     } catch (e: any) {
-      setError(
-        e?.message ||
-          "Permesso camera negato o camera non disponibile."
-      );
+      setError(e?.message || "Permesso fotocamera negato o fotocamera non disponibile.");
     }
+  }
+
+  function stop() {
+    try {
+      controlsRef.current?.stop();
+    } catch {}
+    controlsRef.current = null;
+    setRunning(false);
   }
 
   async function start() {
@@ -81,6 +92,10 @@ export default function Scanner({ onResult }: Props) {
 
             setLastText(text);
             setLastAt(now);
+
+            // BLOCCA subito lo scanner dopo una lettura valida
+            stop();
+
             onResult?.(text);
             return;
           }
@@ -96,19 +111,19 @@ export default function Scanner({ onResult }: Props) {
     }
   }
 
-  function stop() {
-    try {
-      controlsRef.current?.stop();
-    } catch {}
-    controlsRef.current = null;
-    setRunning(false);
-  }
-
   useEffect(() => {
     refreshDevices();
     return () => stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const feedbackColors = {
+    idle: "rgba(20,20,20,.72)",
+    ok: "rgba(0,160,80,.92)",
+    already: "rgba(208,158,0,.94)",
+    not_found: "rgba(210,35,35,.94)",
+    error: "rgba(180,40,40,.94)",
+  };
 
   return (
     <div
@@ -140,7 +155,7 @@ export default function Scanner({ onResult }: Props) {
           playsInline
         />
 
-        {!running && (
+        {!running && feedback?.type === "idle" && (
           <div
             style={{
               position: "absolute",
@@ -202,7 +217,7 @@ export default function Scanner({ onResult }: Props) {
             {running ? "Scanner attivo" : "Scanner fermo"}
           </div>
 
-          {running && (
+          {running ? (
             <button
               onClick={stop}
               type="button"
@@ -218,15 +233,57 @@ export default function Scanner({ onResult }: Props) {
             >
               Stop
             </button>
+          ) : (
+            <button
+              onClick={start}
+              type="button"
+              style={{
+                padding: "10px 14px",
+                borderRadius: 999,
+                border: "none",
+                background: "rgba(0,120,255,.92)",
+                color: "#fff",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Nuova scansione
+            </button>
           )}
         </div>
+
+        {feedback && feedback.type !== "idle" && (
+          <div
+            style={{
+              position: "absolute",
+              top: 72,
+              left: 16,
+              right: 16,
+              borderRadius: 18,
+              padding: "16px 18px",
+              background: feedbackColors[feedback.type],
+              color: "#fff",
+              boxShadow: "0 10px 30px rgba(0,0,0,.35)",
+              zIndex: 3,
+            }}
+          >
+            <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1.1 }}>
+              {feedback.title}
+            </div>
+            {feedback.subtitle ? (
+              <div style={{ marginTop: 8, fontSize: 17, lineHeight: 1.25 }}>
+                {feedback.subtitle}
+              </div>
+            ) : null}
+          </div>
+        )}
 
         <div
           style={{
             position: "absolute",
             left: 20,
             right: 20,
-            top: "50%",
+            top: "56%",
             transform: "translateY(-50%)",
             border: "3px solid rgba(255,255,255,.9)",
             borderRadius: 22,
