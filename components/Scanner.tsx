@@ -34,7 +34,6 @@ export default function Scanner({ onResult }: Props) {
     try {
       await navigator.mediaDevices.getUserMedia({ video: true });
 
-      // Non usiamo metodi “dubbi” di zxing: prendiamo i device dal browser direttamente.
       const all = await navigator.mediaDevices.enumerateDevices();
       const list = all.filter((d) => d.kind === "videoinput") as MediaDeviceInfo[];
       setDevices(list);
@@ -43,11 +42,12 @@ export default function Scanner({ onResult }: Props) {
         list.find((d) => /back|rear|environment/i.test(d.label))?.deviceId ||
         list[0]?.deviceId ||
         "";
+
       setDeviceId((prev) => prev || preferred);
     } catch (e: any) {
       setError(
         e?.message ||
-          "Permesso camera negato o camera non disponibile (controlla HTTPS e permessi)."
+          "Permesso camera negato o camera non disponibile."
       );
     }
   }
@@ -55,14 +55,13 @@ export default function Scanner({ onResult }: Props) {
   async function start() {
     setError("");
     if (!videoRef.current) return;
+
     if (!deviceId) {
-      setError("Nessuna camera selezionata.");
+      setError("Nessuna fotocamera selezionata.");
       return;
     }
 
-    // stop eventuale sessione precedente
     stop();
-
     setRunning(true);
 
     try {
@@ -112,66 +111,215 @@ export default function Scanner({ onResult }: Props) {
   }, []);
 
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <button onClick={refreshDevices} type="button">
-          Rileva camere
-        </button>
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 22,
+        border: "1px solid rgba(255,255,255,.14)",
+        background: "#0f1115",
+        boxShadow: "0 8px 30px rgba(0,0,0,.35)",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          aspectRatio: "9 / 14",
+          background: "#000",
+        }}
+      >
+        <video
+          ref={videoRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+          muted
+          playsInline
+        />
 
-        <select
-          value={deviceId}
-          onChange={(e) => setDeviceId(e.target.value)}
-          disabled={running}
-          style={{ minWidth: 240 }}
-        >
-          {devices.length === 0 ? (
-            <option value="">Nessuna camera</option>
-          ) : (
-            devices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>
-                {d.label || `Camera ${d.deviceId.slice(0, 6)}…`}
-              </option>
-            ))
-          )}
-        </select>
-
-        {!running ? (
-          <button onClick={start} type="button" disabled={!deviceId}>
-            Avvia scan
-          </button>
-        ) : (
-          <button onClick={stop} type="button">
-            Stop
-          </button>
+        {!running && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,.45)",
+              padding: 20,
+            }}
+          >
+            <button
+              onClick={start}
+              type="button"
+              disabled={!deviceId}
+              style={{
+                width: "100%",
+                maxWidth: 280,
+                padding: "16px 20px",
+                borderRadius: 18,
+                border: "none",
+                background: "#ffffff",
+                color: "#000",
+                fontWeight: 800,
+                fontSize: 18,
+                cursor: !deviceId ? "not-allowed" : "pointer",
+                opacity: !deviceId ? 0.6 : 1,
+                boxShadow: "0 10px 30px rgba(0,0,0,.35)",
+              }}
+            >
+              Avvia scanner
+            </button>
+          </div>
         )}
+
+        <div
+          style={{
+            position: "absolute",
+            top: 14,
+            left: 14,
+            right: 14,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div
+            style={{
+              padding: "8px 12px",
+              borderRadius: 999,
+              background: running ? "rgba(0,180,90,.9)" : "rgba(20,20,20,.7)",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 700,
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {running ? "Scanner attivo" : "Scanner fermo"}
+          </div>
+
+          {running && (
+            <button
+              onClick={stop}
+              type="button"
+              style={{
+                padding: "10px 14px",
+                borderRadius: 999,
+                border: "none",
+                background: "rgba(220,40,40,.92)",
+                color: "#fff",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Stop
+            </button>
+          )}
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            top: "50%",
+            transform: "translateY(-50%)",
+            border: "3px solid rgba(255,255,255,.9)",
+            borderRadius: 22,
+            height: "34%",
+            boxShadow: "0 0 0 9999px rgba(0,0,0,.22)",
+            pointerEvents: "none",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            left: 16,
+            right: 16,
+            bottom: 16,
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <select
+            value={deviceId}
+            onChange={(e) => setDeviceId(e.target.value)}
+            disabled={running}
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: 16,
+              border: "1px solid rgba(255,255,255,.18)",
+              background: "rgba(15,17,21,.82)",
+              color: "#fff",
+              fontSize: 15,
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            {devices.length === 0 ? (
+              <option value="">Nessuna fotocamera</option>
+            ) : (
+              devices.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Camera ${d.deviceId.slice(0, 6)}…`}
+                </option>
+              ))
+            )}
+          </select>
+
+          <button
+            onClick={refreshDevices}
+            type="button"
+            disabled={running}
+            style={{
+              width: "100%",
+              padding: "13px 16px",
+              borderRadius: 16,
+              border: "1px solid rgba(255,255,255,.14)",
+              background: "rgba(255,255,255,.08)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: running ? "not-allowed" : "pointer",
+              opacity: running ? 0.6 : 1,
+            }}
+          >
+            Aggiorna fotocamere
+          </button>
+        </div>
       </div>
 
       {error ? (
-        <div style={{ padding: 10, border: "1px solid #ff6b6b", borderRadius: 12 }}>
-          <b style={{ color: "crimson" }}>Errore:</b> {error}
+        <div
+          style={{
+            padding: 14,
+            borderTop: "1px solid rgba(255,255,255,.1)",
+            background: "rgba(180,20,20,.12)",
+            color: "#fff",
+          }}
+        >
+          <b>Errore:</b> {error}
         </div>
       ) : null}
 
       <div
         style={{
-          overflow: "hidden",
-          borderRadius: 16,
-          border: "1px solid rgba(255,255,255,.15)",
-          background: "rgba(255,255,255,.03)",
+          padding: 14,
+          borderTop: "1px solid rgba(255,255,255,.08)",
+          background: "#11131a",
+          color: "#fff",
         }}
       >
-        <video
-          ref={videoRef}
-          style={{ width: "100%", height: "auto", display: "block" }}
-          muted
-          playsInline
-        />
-      </div>
-
-      <div style={{ padding: 10, border: "1px solid rgba(255,255,255,.15)", borderRadius: 12 }}>
-        <b>Ultimo QR:</b>
-        <div style={{ wordBreak: "break-all", marginTop: 6 }}>
-          {lastText ? lastText : <span style={{ opacity: 0.7 }}>Nessuno</span>}
+        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>
+          Ultimo QR letto
+        </div>
+        <div style={{ wordBreak: "break-all", fontSize: 14 }}>
+          {lastText || "Nessuno"}
         </div>
       </div>
     </div>
