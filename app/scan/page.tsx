@@ -1,19 +1,42 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import ScanClient from "../../components/ScanClient";
 
-export default function ScanPage({
-  searchParams,
-}: {
-  searchParams: { key?: string };
-}) {
-  const key = (searchParams.key || "").trim();
-  const expected = process.env.SCAN_KEY || "";
+export default function ScanPage() {
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const key = (params.get("key") || "").trim();
+
+    const expected = process.env.NEXT_PUBLIC_SCAN_KEY || "";
+    setAllowed(!!expected && !!key && key === expected);
+  }, []);
+
+  if (allowed === null) {
+    return (
+      <main style={{ padding: 24 }}>
+        <h1>Scanner</h1>
+        <p>Controllo accesso...</p>
+      </main>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <main style={{ padding: 24 }}>
+        <h1>Scanner</h1>
+        <p>Accesso negato</p>
+      </main>
+    );
+  }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Scanner debug</h1>
-      <p>key url: {key || "(vuota)"}</p>
-      <p>expected length: {expected.length}</p>
-      <p>match: {key === expected ? "SI" : "NO"}</p>
+    <main style={{ padding: 24, maxWidth: 760, margin: "0 auto" }}>
+      <h1>Scanner</h1>
+      <p style={{ opacity: 0.8 }}>Scansiona il QR (codice puro).</p>
+      <ScanClient />
     </main>
   );
 }
