@@ -325,26 +325,6 @@ export default function Scanner({ onResult, feedback }: Props) {
               ))
             )}
           </select>
-
-          <button
-            onClick={refreshDevices}
-            type="button"
-            disabled={running}
-            style={{
-              width: "100%",
-              padding: "13px 16px",
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,.14)",
-              background: "rgba(255,255,255,.08)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: running ? "not-allowed" : "pointer",
-              opacity: running ? 0.6 : 1,
-            }}
-          >
-            Aggiorna fotocamere
-          </button>
         </div>
       </div>
 
