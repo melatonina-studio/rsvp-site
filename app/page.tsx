@@ -99,9 +99,9 @@ export default function Home() {
 
       <div className={styles.content}>
         <div className={styles.card}>
-          <h1 className={styles.h1}>RSVP 27 Marzo</h1>
+          <h1 className={styles.h1}>RSVP - Venerdì 27 Marzo</h1>
           <p className={styles.sub}>
-            Registrandoti avrai la riduzione sul Ticket. Inserisci nome e cognome, email e partecipa. Niente spam, solo Tekno.
+            Registrati e avrai la riduzione sul Ticket. Inserisci nome e cognome, email per ricevere la conferma. Niente spam, solo Tekno.
           </p>
 
           <form className={styles.form} onSubmit={onSubmit} noValidate>
