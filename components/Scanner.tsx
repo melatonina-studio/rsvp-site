@@ -23,8 +23,6 @@ export default function Scanner({ onResult, feedback }: Props) {
   const [deviceId, setDeviceId] = useState<string>("");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string>("");
-  const [lastText, setLastText] = useState<string>("");
-  const [lastAt, setLastAt] = useState<number>(0);
 
   const hints = useMemo(() => {
     const h = new Map<DecodeHintType, any>();
@@ -44,7 +42,7 @@ export default function Scanner({ onResult, feedback }: Props) {
       setDevices(list);
 
       const preferred =
-        list.find((d) => /back|rear|environment|posteriore/i.test(d.label))?.deviceId ||
+        list.find((d) => /back|rear|environment|posteriore|triple/i.test(d.label))?.deviceId ||
         list[list.length - 1]?.deviceId ||
         list[0]?.deviceId ||
         "";
@@ -82,16 +80,7 @@ export default function Scanner({ onResult, feedback }: Props) {
         (res, err) => {
           if (res) {
             const text = (res.getText() || "").trim();
-            const now = Date.now();
-
-            const same = text && text === lastText;
-            const tooSoon = now - lastAt < 1200;
-
             if (!text) return;
-            if (same && tooSoon) return;
-
-            setLastText(text);
-            setLastAt(now);
 
             stop();
             onResult?.(text);
@@ -131,7 +120,7 @@ export default function Scanner({ onResult, feedback }: Props) {
       ? "rgba(255,212,0,.12)"
       : feedback?.type === "not_found" || feedback?.type === "error"
       ? "rgba(255,59,48,.12)"
-      : "transparent";
+      : "rgba(255,255,255,.02)";
 
   const bannerBg =
     feedback?.type === "ok"
@@ -157,21 +146,9 @@ export default function Scanner({ onResult, feedback }: Props) {
         style={{
           position: "relative",
           aspectRatio: "9 / 14",
-          background: "#000",
+          background: "#050505",
         }}
       >
-        <video
-          ref={videoRef}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
-          muted
-          playsInline
-        />
-
         <div
           style={{
             position: "absolute",
@@ -182,6 +159,7 @@ export default function Scanner({ onResult, feedback }: Props) {
             gap: 8,
             alignItems: "center",
             justifyContent: "space-between",
+            zIndex: 5,
           }}
         >
           <div
@@ -215,7 +193,7 @@ export default function Scanner({ onResult, feedback }: Props) {
               Stop
             </button>
           ) : (
-            <div style={{ width: 72 }} />
+            <div style={{ width: 70 }} />
           )}
         </div>
 
@@ -223,7 +201,7 @@ export default function Scanner({ onResult, feedback }: Props) {
           <div
             style={{
               position: "absolute",
-              top: 82,
+              top: 76,
               left: 18,
               right: 18,
               borderRadius: 18,
@@ -231,7 +209,7 @@ export default function Scanner({ onResult, feedback }: Props) {
               background: bannerBg,
               color: "#fff",
               boxShadow: "0 10px 30px rgba(0,0,0,.35)",
-              zIndex: 3,
+              zIndex: 5,
             }}
           >
             <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.1 }}>
@@ -245,63 +223,71 @@ export default function Scanner({ onResult, feedback }: Props) {
           </div>
         )}
 
+        {/* Area di scansione reale */}
         <div
           style={{
             position: "absolute",
             left: 20,
             right: 20,
-            top: "39%",
+            top: "56%",
             transform: "translateY(-50%)",
+            height: "34%",
             border: frameBorder,
             borderRadius: 22,
-            height: "50%",
             background: frameBg,
-            boxShadow: "0 0 0 9999px rgba(0,0,0,.22)",
+            boxShadow: "0 0 0 9999px rgba(0,0,0,.30)",
             transition: "all .18s ease",
-            pointerEvents: "none",
+            overflow: "hidden",
           }}
-        />
-
-        {!running && (
-          <div
+        >
+          <video
+            ref={videoRef}
             style={{
-              position: "absolute",
-              left: 20,
-              right: 20,
-              top: "39%",
-              transform: "translateY(-50%)",
-              height: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 4,
-              pointerEvents: "none",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              opacity: running ? 1 : 0.35,
             }}
-          >
-            <button
-              onClick={start}
-              type="button"
-              disabled={!deviceId}
+            muted
+            playsInline
+          />
+
+          {!running && (
+            <div
               style={{
-                pointerEvents: "auto",
-                padding: "15px 22px",
-                borderRadius: 18,
-                border: "1px solid rgba(255,255,255,.18)",
-                background: "rgba(255,255,255,.75)",
-                backdropFilter: "blur(8px)",
-                color: "#111",
-                fontWeight: 800,
-                fontSize: 18,
-                cursor: !deviceId ? "not-allowed" : "pointer",
-                opacity: !deviceId ? 0.5 : 1,
-                boxShadow: "0 10px 30px rgba(0,0,0,.28)",
-                minWidth: 220,
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 4,
               }}
             >
-              Avvia scansione
-            </button>
-          </div>
-        )}
+              <button
+                onClick={start}
+                type="button"
+                disabled={!deviceId}
+                style={{
+                  padding: "15px 22px",
+                  borderRadius: 18,
+                  border: "1px solid rgba(255,255,255,.18)",
+                  background: "rgba(255,255,255,.75)",
+                  backdropFilter: "blur(8px)",
+                  color: "#111",
+                  fontWeight: 800,
+                  fontSize: 18,
+                  cursor: !deviceId ? "not-allowed" : "pointer",
+                  opacity: !deviceId ? 0.5 : 1,
+                  boxShadow: "0 10px 30px rgba(0,0,0,.28)",
+                  minWidth: 220,
+                }}
+              >
+                Avvia scansione
+              </button>
+            </div>
+          )}
+        </div>
 
         <div
           style={{
@@ -311,6 +297,7 @@ export default function Scanner({ onResult, feedback }: Props) {
             bottom: 16,
             display: "grid",
             gap: 10,
+            zIndex: 5,
           }}
         >
           <select
@@ -373,22 +360,6 @@ export default function Scanner({ onResult, feedback }: Props) {
           <b>Errore:</b> {error}
         </div>
       ) : null}
-
-      <div
-        style={{
-          padding: 14,
-          borderTop: "1px solid rgba(255,255,255,.08)",
-          background: "#11131a",
-          color: "#fff",
-        }}
-      >
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>
-          Ultimo QR letto
-        </div>
-        <div style={{ wordBreak: "break-all", fontSize: 14 }}>
-          {lastText || "Nessuno"}
-        </div>
-      </div>
     </div>
   );
 }
