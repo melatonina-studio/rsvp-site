@@ -7,22 +7,13 @@ export default function ScanPage({
 }) {
   const key = (searchParams.key || "").trim();
   const expected = process.env.SCAN_KEY || "";
-  const ok = expected && key && key === expected;
-
-  if (!ok) {
-    return (
-      <main style={{ padding: 24 }}>
-        <h1>Scanner</h1>
-        <p>Accesso negato</p>
-      </main>
-    );
-  }
 
   return (
-    <main style={{ padding: 24, maxWidth: 760, margin: "0 auto" }}>
-      <h1>Scanner</h1>
-      <p style={{ opacity: 0.8 }}>Scansiona il QR (codice puro).</p>
-      <ScanClient />
+    <main style={{ padding: 24 }}>
+      <h1>Scanner debug</h1>
+      <p>key url: {key || "(vuota)"}</p>
+      <p>expected length: {expected.length}</p>
+      <p>match: {key === expected ? "SI" : "NO"}</p>
     </main>
   );
 }
