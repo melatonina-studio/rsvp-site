@@ -7,9 +7,7 @@ export default function ScanPage({
 }) {
   const key = (searchParams.key || "").trim();
   const expected = process.env.SCAN_KEY || "";
-
-  const bypass = true; // TEMP per test
-  const ok = bypass || (expected && key && key === expected);
+  const ok = expected && key && key === expected;
 
   if (!ok) {
     return (
