@@ -168,8 +168,8 @@ function JoinContent() {
 
           {/* PLAYLIST + BACK */}
           <div className={styles.actions}>
-            <a className={styles.btn} href="https://soundcloud.com" target="_blank" rel="noreferrer">
-              Playlist
+            <a className={styles.btn} href="https://soundcloud.com/mauvais-garcons-617710888/mauvais-garcons-podcast-mp3" target="_blank" rel="noreferrer">
+              Playlist 01
             </a>
           </div>
         </section>
