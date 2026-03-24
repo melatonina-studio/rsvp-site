@@ -58,7 +58,7 @@ function JoinContent() {
           </div>
 
           <h1 className={styles.title}>TRASMISSIONE RICEVUTA</h1>
-          <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista e pagherai il prezzo ridotto. Niente spam solo Tekno.</p>
+          <p className={styles.subtitle}>Sei dentro. Ti abbiamo aggiunto alla lista e pagherai il prezzo ridotto. Controlla la tua email di conferma (non dimenticare di controllare la cartella dello spam)</p>
           <div className={styles.posterWrap}>
             <Image
               src="/cover-planet.jpg"
@@ -147,7 +147,7 @@ function JoinContent() {
               <div className={styles.place}>PLANET</div>
               <a
                 className={styles.mapBtn}
-                href="https://www.google.com/maps/search/?api=1&query=Planet%20Lamezia%20Terme"
+                href="https://maps.app.goo.gl/1fh7V8bwvCgAqviF9"
                 target="_blank"
                 rel="noreferrer"
               >
